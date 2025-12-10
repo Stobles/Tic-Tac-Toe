@@ -1,9 +1,18 @@
+import { db } from "@/shared/lib/db";
 import { Button } from "@/shared/ui/button";
+import { Card, CardTitle } from "@/shared/ui/card";
 
-export default function Home() {
+export default async function Home() {
+  const games = await db.game.findMany();
+
+  console.log(games);
   return (
     <div>
-      <Button>ИТпип</Button>
+      {games.map((item) => (
+        <Card key={item.id}>
+          <CardTitle>{item.name}</CardTitle>
+        </Card>
+      ))}
     </div>
   );
 }

@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  tic-tac-toe:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - tic-tac-toe:/var/lib/postgresql/data
+volumes:
+  tic-tac-toe:
