@@ -8,15 +8,40 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  const user = await prisma.user.create({
+    data: {
+      login: "user",
+      passwordHash: "2312312",
+      rating: 1000,
+    },
+  });
+
+  const user2 = await prisma.user.create({
+    data: {
+      login: "user2",
+      passwordHash: "2312312",
+      rating: 1200,
+    },
+  });
   await prisma.game.create({
     data: {
-      name: "game1",
+      status: "idle",
+      players: {
+        connect: {
+          id: user.id,
+        },
+      },
     },
   });
 
   await prisma.game.create({
     data: {
-      name: "game1",
+      status: "idle",
+      players: {
+        connect: {
+          id: user2.id,
+        },
+      },
     },
   });
 }
