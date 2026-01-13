@@ -1,12 +1,13 @@
 import { getIdleGames } from "@/entities/game/server";
-import { RootLayout } from "../ui/RootLayout";
+import { Layout } from "../ui/Layout";
 import { GameCard } from "../ui/GameCard";
+import { CreateButton } from "./CreateButton";
 
 export async function GamesList() {
   const games = await getIdleGames();
 
   return (
-    <RootLayout>
+    <Layout actions={<CreateButton />}>
       {games.map((game) => (
         <GameCard
           key={game.id}
@@ -14,6 +15,6 @@ export async function GamesList() {
           rating={game.creator.rating}
         />
       ))}
-    </RootLayout>
+    </Layout>
   );
 }

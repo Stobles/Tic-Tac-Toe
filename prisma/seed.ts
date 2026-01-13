@@ -23,27 +23,6 @@ async function main() {
       rating: 1200,
     },
   });
-  await prisma.game.create({
-    data: {
-      status: "idle",
-      players: {
-        connect: {
-          id: user.id,
-        },
-      },
-    },
-  });
-
-  await prisma.game.create({
-    data: {
-      status: "idle",
-      players: {
-        connect: {
-          id: user2.id,
-        },
-      },
-    },
-  });
 }
 main()
   .then(async () => {
