@@ -12,6 +12,7 @@ async function main() {
     data: {
       login: "user",
       passwordHash: "2312312",
+      salt: "2312",
       rating: 1000,
     },
   });
@@ -20,6 +21,7 @@ async function main() {
     data: {
       login: "user2",
       passwordHash: "2312312",
+      salt: "sdfsd",
       rating: 1200,
     },
   });

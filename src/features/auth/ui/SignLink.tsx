@@ -1,0 +1,20 @@
+import Link from "next/link";
+
+export function SignLink({
+  linkText,
+  text,
+  url,
+}: {
+  linkText: string;
+  text: string;
+  url: string;
+}) {
+  return (
+    <p className="text-sm text-primary/50">
+      {text}{" "}
+      <Link href={url} className="font-medium text-primary hover:underline">
+        {linkText}
+      </Link>
+    </p>
+  );
+}
