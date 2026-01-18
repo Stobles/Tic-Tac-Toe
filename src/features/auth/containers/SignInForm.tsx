@@ -3,26 +3,25 @@
 import { AuthFormLayout } from "../ui/AuthFormLayout";
 import { AuthFields } from "../ui/AuthFields";
 import { SubmitButton } from "../ui/SubmitButton";
-import { right } from "@/shared/lib/either";
 import { SignLink } from "../ui/SignLink";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { useActionState } from "@/shared/lib/react";
-import { signInAction } from "../actions/sign-in";
+import { signInAction, SignInFormState } from "../actions/signIn";
 
 export function SignInForm() {
   const [state, action, isPending] = useActionState(
     signInAction,
-    right(undefined)
+    {} as SignInFormState,
   );
   return (
     <AuthFormLayout
       title="Авторизация"
       description="Войдите в свой аккаунт"
-      fields={<AuthFields />}
+      fields={<AuthFields formFields={state.formData} errors={state.errors} />}
       actions={
         <SubmitButton isPending={isPending}>Авторизоваться</SubmitButton>
       }
-      error={<ErrorMessage error={state} />}
+      error={<ErrorMessage error={state.errors?._errors} />}
       link={
         <SignLink
           text="Нет аккаунта?"
