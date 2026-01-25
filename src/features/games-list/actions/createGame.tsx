@@ -1,12 +1,12 @@
 "use server";
 
 import { createGame } from "@/entities/game/server";
-import { db } from "@/shared/lib/db";
+import { getCurrentUser } from "@/entities/user/services/getCurrentUser";
 import { left } from "@/shared/lib/either";
 import { redirect } from "next/navigation";
 
 export const createGameAction = async () => {
-  const user = await db.user.findFirst();
+  const user = await getCurrentUser();
 
   if (!user) {
     return left("user-not-found" as const);

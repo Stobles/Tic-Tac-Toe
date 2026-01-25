@@ -64,8 +64,6 @@ export const verifySession = cache(async () => {
 });
 
 export const sessionService = {
-  encrypt,
-  decrypt,
   createSession,
   deleteSession,
   verifySession,

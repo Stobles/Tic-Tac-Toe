@@ -9,7 +9,7 @@ import { removePassword } from "@/shared/lib/password";
 const fieldSchema = z.array(z.union([z.string(), z.null()]));
 
 function dbGameToGameEntity(
-  game: Game & { players: User[]; winner?: User | null }
+  game: Game & { players: User[]; winner?: User | null },
 ): GameEntity {
   const players = game.players.map(removePassword);
   switch (game.status) {
@@ -20,6 +20,7 @@ function dbGameToGameEntity(
       return {
         id: game.id,
         creator,
+        field: Array(9).fill(null),
         status: game.status,
       } satisfies GameIdleEntity;
     case "inProgress":
@@ -54,12 +55,28 @@ async function gamesList(where?: GameWhereInput): Promise<GameEntity[]> {
   return games.map(dbGameToGameEntity);
 }
 
+async function getGame(where?: GameWhereInput) {
+  const game = await db.game.findFirst({
+    where,
+    include: {
+      winner: true,
+      players: true,
+    },
+  });
+
+  if (game) {
+    return dbGameToGameEntity(game);
+  }
+
+  return undefined;
+}
+
 async function createGame(game: GameIdleEntity): Promise<GameEntity> {
   const createdGame = await db.game.create({
     data: {
       status: game.status,
       id: game.id,
-      field: Array(9).fill(null),
+      field: game.field,
       players: {
         connect: {
           id: game.creator.id,
@@ -78,4 +95,5 @@ async function createGame(game: GameIdleEntity): Promise<GameEntity> {
 export const gameRepository = {
   gamesList,
   createGame,
+  getGame,
 };

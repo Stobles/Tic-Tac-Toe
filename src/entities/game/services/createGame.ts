@@ -10,7 +10,7 @@ export async function createGame(player: PlayerEntity) {
   });
 
   const isGameInIdleStatus = playerGames.some(
-    (game) => game.status === "idle" && game.creator.id === player.id
+    (game) => game.status === "idle" && game.creator.id === player.id,
   );
 
   if (isGameInIdleStatus) {
@@ -20,6 +20,7 @@ export async function createGame(player: PlayerEntity) {
   const game = await gameRepository.createGame({
     id: cuid(),
     creator: player,
+    field: Array(9).fill(null),
     status: "idle",
   });
   return right(game);
