@@ -2,16 +2,10 @@ import { getGameById, surrenderGame } from "@/entities/game/server";
 import { GameId } from "@/kernel/ids";
 import { createSseStream } from "@/shared/lib/sse/server";
 import { NextRequest } from "next/server";
-import { gameEvents } from "../../../entities/game/services/gameEvents";
+import { gameEvents } from "../services/gameEvents";
 import { getCurrentUser } from "@/entities/user/server";
 
-export async function getGameStream(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: GameId }> },
-) {
-  const { id } = await params;
-
-  const game = await getGameById(id);
+export async function getGamesStream(req: NextRequest) {
   const user = await getCurrentUser();
 
   if (!game || !user) {

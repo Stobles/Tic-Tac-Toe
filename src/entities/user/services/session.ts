@@ -6,6 +6,7 @@ import { left, right } from "@/shared/lib/either";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { routes } from "@/kernel/routes";
 
 const secretKey = process.env.SESSION_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -57,7 +58,7 @@ export const verifySession = cache(async () => {
   const session = await decrypt(cookie);
 
   if (session?.type === "left") {
-    redirect("/sign-in");
+    redirect(routes.signIn());
   }
 
   return { isAuth: true, session: session.value };

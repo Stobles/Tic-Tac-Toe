@@ -15,7 +15,7 @@ export function GameField({
         <button
           key={index}
           onClick={() => onCellClick?.(index)}
-          className="border border-primary w-10 h-10 flex justify-center items-center"
+          className="border border-primary w-10 h-10 flex justify-center items-center cursor-pointer"
         >
           {symbol ?? ""}
         </button>

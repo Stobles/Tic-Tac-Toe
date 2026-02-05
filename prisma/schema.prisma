@@ -21,21 +21,32 @@ enum GameStatus {
 }
 
 model Game {
-  id         String     @id @default(cuid())
+  id         String       @id @default(cuid())
   status     GameStatus
   field      Json?
-  players    User[]     @relation("games")
-  winner     User?      @relation(fields: [winnerId], references: [id])
+  players    GamePlayer[] @relation("players")
+  winner     GamePlayer?  @relation(fields: [winnerId], references: [id])
   winnerId   String?
   gameOverAt String?
 }
 
+model GamePlayer {
+  id     String @id @default(cuid())
+  gameId String
+  game   Game   @relation("players", fields: [gameId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  index  Int
+  games  Game[]
+
+  @@unique([gameId, userId])
+}
+
 model User {
-  id           String @id @default(cuid())
+  id           String       @id @default(cuid())
   login        String
   rating       Int
   passwordHash String
   salt         String
-  games        Game[] @relation("games")
-  winnerGames  Game[]
+  players      GamePlayer[]
 }

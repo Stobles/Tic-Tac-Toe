@@ -7,6 +7,7 @@ import { SignLink } from "../ui/SignLink";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { signUpAction, SignUpFormState } from "../actions/signUp";
 import { useActionState } from "@/shared/lib/react";
+import { routes } from "@/kernel/routes";
 
 export function SignUpForm() {
   const [state, action, isPending] = useActionState(
@@ -27,7 +28,7 @@ export function SignUpForm() {
         <SignLink
           text="Уже есть аккаунт?"
           linkText="Авторизоваться"
-          url="/sign-in"
+          url={routes.signIn()}
         />
       }
       action={action}

@@ -1,17 +1,34 @@
 import { db } from "@/shared/lib/db";
-import { GameEntity, GameIdleEntity, GameOverEntity } from "../domain";
-import { Game, User } from "@/prisma/client";
+import {
+  GameEntity,
+  GameIdleEntity,
+  GameInProgressEntity,
+  GameOverDrawEntity,
+  GameOverEntity,
+  PlayerEntity,
+} from "../domain";
+import { Game, GamePlayer, User } from "@/prisma/client";
 
 import { z } from "zod";
 import { GameWhereInput } from "@/prisma/models";
-import { removePassword } from "@/shared/lib/password";
+import { GameId } from "@/kernel/ids";
 
 const fieldSchema = z.array(z.union([z.string(), z.null()]));
 
+const gameInclude = {
+  winner: { include: { user: true } },
+  players: { include: { user: true } },
+};
+
 function dbGameToGameEntity(
-  game: Game & { players: User[]; winner?: User | null },
+  game: Game & {
+    players: Array<GamePlayer & { user: User }>;
+    winner?: (GamePlayer & { user: User }) | null;
+  },
 ): GameEntity {
-  const players = game.players.map(removePassword);
+  const players = game.players
+    .sort((a, b) => a.index - b.index)
+    .map(dbPlayerToPlayer);
   switch (game.status) {
     case "idle":
       const [creator] = players;
@@ -38,7 +55,7 @@ function dbGameToGameEntity(
         players: players,
         field: fieldSchema.parse(game.field),
         status: game.status,
-        winner: removePassword(game.winner),
+        winner: dbPlayerToPlayer(game.winner),
       } satisfies GameOverEntity;
   }
 }
@@ -46,10 +63,7 @@ function dbGameToGameEntity(
 async function gamesList(where?: GameWhereInput): Promise<GameEntity[]> {
   const games = await db.game.findMany({
     where,
-    include: {
-      winner: true,
-      players: true,
-    },
+    include: gameInclude,
   });
 
   return games.map(dbGameToGameEntity);
@@ -58,10 +72,7 @@ async function gamesList(where?: GameWhereInput): Promise<GameEntity[]> {
 async function getGame(where?: GameWhereInput) {
   const game = await db.game.findFirst({
     where,
-    include: {
-      winner: true,
-      players: true,
-    },
+    include: gameInclude,
   });
 
   if (game) {
@@ -78,22 +89,70 @@ async function createGame(game: GameIdleEntity): Promise<GameEntity> {
       id: game.id,
       field: game.field,
       players: {
-        connect: {
-          id: game.creator.id,
+        create: {
+          index: 0,
+          userId: game.creator.id,
         },
       },
     },
-    include: {
-      players: true,
-      winner: true,
-    },
+    include: gameInclude,
   });
 
   return dbGameToGameEntity(createdGame);
 }
 
+async function startGame(
+  gameId: GameId,
+  player: PlayerEntity,
+): Promise<GameEntity> {
+  return dbGameToGameEntity(
+    await db.game.update({
+      where: { id: gameId },
+      data: {
+        players: {
+          create: { index: 1, userId: player.id },
+        },
+        status: "inProgress",
+      },
+      include: gameInclude,
+    }),
+  );
+}
+
+async function saveGame(
+  game: GameInProgressEntity | GameOverDrawEntity | GameOverEntity,
+): Promise<GameEntity> {
+  const winnerId =
+    game.status === "gameOver"
+      ? await db.gamePlayer
+          .findFirstOrThrow({
+            where: { userId: game.winner?.id },
+          })
+          .then((value) => value.id)
+      : undefined;
+  return dbGameToGameEntity(
+    await db.game.update({
+      where: { id: game.id },
+      data: {
+        status: game.status,
+        field: game.field,
+        winnerId: winnerId,
+      },
+      include: gameInclude,
+    }),
+  );
+}
+
+export const dbPlayerToPlayer = (
+  db: GamePlayer & { user: User },
+): PlayerEntity => {
+  return { id: db.user.id, login: db.user.login, rating: db.user.rating };
+};
+
 export const gameRepository = {
   gamesList,
   createGame,
   getGame,
+  startGame,
+  saveGame,
 };

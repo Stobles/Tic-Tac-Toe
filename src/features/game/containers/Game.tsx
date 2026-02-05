@@ -1,24 +1,27 @@
-"use client";
-
 import { GameId } from "@/kernel/ids";
-import { GameLayout } from "../ui/GameLayout";
-import { GamePlayers } from "../ui/GamePlayers";
-import { GameStatus } from "../ui/GameStatus";
-import { GameField } from "../ui/GameField";
-import { useGame } from "../model/useGame";
+import { GameClient } from "./GameClient";
+import { getCurrentUser } from "@/entities/user/server";
+import { getGameById, startGame } from "@/entities/game/server";
+import { gameEvents } from "../../../entities/game/services/gameEvents";
+import { routes } from "@/kernel/routes";
+import { redirect } from "next/navigation";
 
-export const Game = ({ gameId }: { gameId: GameId }) => {
-  const { game, isPending } = useGame(gameId);
+export const Game = async ({ gameId }: { gameId: GameId }) => {
+  const user = await getCurrentUser();
 
-  if (!game || isPending) {
-    return <GameLayout status="Загрузка..." />;
+  let game = await getGameById(gameId);
+
+  if (!game || !user) {
+    redirect(routes.home());
   }
 
-  return (
-    <GameLayout
-      players={<GamePlayers game={game} />}
-      status={<GameStatus game={game} />}
-      field={<GameField game={game} />}
-    />
-  );
+  if (user) {
+    const startGameResult = await startGame(gameId, user);
+
+    if (startGameResult.type === "right") {
+      game = startGameResult.value;
+      gameEvents.emit(startGameResult.value);
+    }
+  }
+  return <GameClient defaultGame={game} player={user} />;
 };
