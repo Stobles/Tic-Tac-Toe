@@ -18,10 +18,8 @@ export const stepGameAction = async (
 
   const result = await stepGame(gameId, currentUser, index);
 
-  console.log(result);
-
   if (result.type === "right") {
-    await gameEvents.emit(result.value);
+    await gameEvents.emit({ type: "game-changed", data: result.value });
 
     return result;
   }

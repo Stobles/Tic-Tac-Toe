@@ -1,16 +1,17 @@
 "use client";
 
-import { Button } from "@/shared/ui/button";
+import { Button, ButtonProps } from "@/shared/ui/button";
 import { createGameAction } from "../actions/createGame";
 import { useActionState } from "@/shared/lib/react";
 import { mapLeft, right } from "@/shared/lib/either";
 import { startTransition, useEffect } from "react";
 import { toast } from "sonner";
+import { PlusIcon } from "lucide-react";
 
-export function CreateButton() {
+export function CreateButton({ ...props }: ButtonProps) {
   const [data, dispatch, isPending] = useActionState(
     createGameAction,
-    right(undefined)
+    right(undefined),
   );
 
   useEffect(() => {
@@ -20,14 +21,19 @@ export function CreateButton() {
         ({
           "can-create-only-one-game": "Вы можете создавать только одну игру",
           "user-not-found": "Пользователь не найден",
-        }[e])
+        })[e],
     );
 
     if (message && message.type === "left") toast(message.error);
   }, [data]);
   return (
-    <Button disabled={isPending} onClick={() => startTransition(dispatch)}>
-      Создать игру
+    <Button
+      disabled={isPending}
+      onClick={() => startTransition(dispatch)}
+      {...props}
+    >
+      <span>Создать игру</span>
+      <PlusIcon />
     </Button>
   );
 }

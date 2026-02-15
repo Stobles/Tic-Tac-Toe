@@ -1,20 +1,16 @@
 import { GameEntity } from "@/entities/game";
-import {
-  getGameCurrentSymbol,
-  getNextSymbol,
-  getPlayerSymbol,
-} from "@/entities/game/domain";
+import { GameHelpers } from "@/entities/game";
 
 export function GameStatus({ game }: { game: GameEntity }) {
   switch (game.status) {
     case "idle":
       return <div className="text-lg">Ожидание игрока</div>;
     case "inProgress": {
-      const currentSymbol = getGameCurrentSymbol(game);
+      const currentSymbol = GameHelpers.getGameCurrentSymbol(game);
       return <div className="text-lg">Ход: {currentSymbol}</div>;
     }
     case "gameOver": {
-      const winnerSymbol = getPlayerSymbol(game.winner, game);
+      const winnerSymbol = GameHelpers.getPlayerSymbol(game.winner, game);
       return <div className="text-lg">Победитель: {winnerSymbol}</div>;
     }
     case "gameOverDraw":

@@ -1,5 +1,5 @@
 import { GameId } from "@/kernel/ids";
-import { PlayerEntity } from "../domain";
+import { PlayerEntity } from "../domain/types";
 import { gameRepository } from "../repositories/game";
 import { left, right } from "@/shared/lib/either";
 

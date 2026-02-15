@@ -1,6 +1,7 @@
 "use server";
 
 import { createGame } from "@/entities/game/server";
+import { gameEvents } from "@/entities/game/services/gameEvents";
 import { getCurrentUser } from "@/entities/user/services/getCurrentUser";
 import { routes } from "@/kernel/routes";
 import { left } from "@/shared/lib/either";
@@ -15,6 +16,7 @@ export const createGameAction = async () => {
   const gameResult = await createGame(user);
 
   if (gameResult.type === "right") {
+    gameEvents.emit({ type: "games-list-changed" });
     redirect(routes.game(gameResult.value.id));
   }
 

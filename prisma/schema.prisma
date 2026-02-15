@@ -20,6 +20,12 @@ enum GameStatus {
   gameOverDraw
 }
 
+enum PlayerStatus {
+  connected
+  disconnected
+  forfeited
+}
+
 model Game {
   id         String       @id @default(cuid())
   status     GameStatus
@@ -31,13 +37,15 @@ model Game {
 }
 
 model GamePlayer {
-  id     String @id @default(cuid())
-  gameId String
-  game   Game   @relation("players", fields: [gameId], references: [id])
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-  index  Int
-  games  Game[]
+  id            String       @id @default(cuid())
+  gameId        String
+  game          Game         @relation("players", fields: [gameId], references: [id])
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  index         Int
+  status        PlayerStatus
+  games         Game[]
+  connectionVer Int          @default(1)
 
   @@unique([gameId, userId])
 }

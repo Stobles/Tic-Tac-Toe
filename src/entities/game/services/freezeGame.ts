@@ -1,13 +1,12 @@
 import { GameId } from "@/kernel/ids";
+import { GameEntity, PlayerEntity } from "../domain";
 import { gameRepository } from "../repositories/game";
 import { left, right } from "@/shared/lib/either";
-import { PlayerEntity } from "../domain/types";
-import { doStep } from "../domain";
 
-export async function stepGame(
+export async function freezeGame(
   gameId: GameId,
   player: PlayerEntity,
-  index: number,
+  connectionVer: number | undefined,
 ) {
   const game = await gameRepository.getGame({ id: gameId });
 
@@ -19,15 +18,18 @@ export async function stepGame(
     return left("game-not-in-progress" as const);
   }
 
-  if (!game.players.some((pl) => pl.id === player.id)) {
+  if (!game.players.some((pl) => pl.id === player.id) || !connectionVer) {
     return left("player-is-not-in-game" as const);
   }
 
-  const stepResult = doStep({ game, index, player });
+  await gameRepository.updatePlayer(
+    gameId,
+    {
+      ...player,
+      status: "disconnected",
+    },
+    { connectionVer },
+  );
 
-  if (stepResult.type === "left") {
-    return stepResult;
-  }
-
-  return right(await gameRepository.saveGame(stepResult.value));
+  return right((await gameRepository.getGame({ id: gameId })) as GameEntity);
 }

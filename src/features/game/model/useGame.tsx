@@ -1,10 +1,10 @@
-import { GameEntity } from "@/entities/game";
+import { GameDomain, GameEntity } from "@/entities/game";
 import { GameId } from "@/kernel/ids";
 import { routes } from "@/kernel/routes";
 import { useEventsSource } from "@/shared/lib/sse/client";
 import { useOptimistic, useTransition } from "react";
 import { stepGameAction } from "../actions/stepGame";
-import { doStep, PlayerEntity } from "@/entities/game/domain";
+import { PlayerEntity } from "@/entities/game";
 import { matchEither } from "@/shared/lib/either";
 
 export function useGame(gameId: GameId, player: PlayerEntity) {
@@ -21,7 +21,7 @@ export function useGame(gameId: GameId, player: PlayerEntity) {
     if (!game || game.status != "inProgress") {
       return game;
     }
-    return matchEither(doStep({ game, index, player }), {
+    return matchEither(GameDomain.doStep({ game, index, player }), {
       left: () => game,
       right: (value) => value,
     });

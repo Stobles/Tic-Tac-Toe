@@ -6,11 +6,11 @@ import {
   GameOverDrawEntity,
   GameOverEntity,
   PlayerEntity,
-} from "../domain";
+} from "../domain/types";
 import { Game, GamePlayer, User } from "@/prisma/client";
 
 import { z } from "zod";
-import { GameWhereInput } from "@/prisma/models";
+import { GamePlayerWhereUniqueInput, GameWhereInput } from "@/prisma/models";
 import { GameId } from "@/kernel/ids";
 
 const fieldSchema = z.array(z.union([z.string(), z.null()]));
@@ -92,6 +92,7 @@ async function createGame(game: GameIdleEntity): Promise<GameEntity> {
         create: {
           index: 0,
           userId: game.creator.id,
+          status: "connected",
         },
       },
     },
@@ -110,7 +111,11 @@ async function startGame(
       where: { id: gameId },
       data: {
         players: {
-          create: { index: 1, userId: player.id },
+          create: {
+            index: 1,
+            userId: player.id,
+            status: "connected",
+          },
         },
         status: "inProgress",
       },
@@ -143,10 +148,30 @@ async function saveGame(
   );
 }
 
+async function updatePlayer(
+  gameId: GameId,
+  player: PlayerEntity,
+  where?: GamePlayerWhereUniqueInput,
+) {
+  await db.gamePlayer.update({
+    where: { gameId_userId: { gameId, userId: player.id }, ...where },
+    data: {
+      status: player.status,
+      connectionVer: { increment: 1 },
+    },
+  });
+}
+
 export const dbPlayerToPlayer = (
   db: GamePlayer & { user: User },
 ): PlayerEntity => {
-  return { id: db.user.id, login: db.user.login, rating: db.user.rating };
+  return {
+    id: db.user.id,
+    login: db.user.login,
+    rating: db.user.rating,
+    status: db.status,
+    connectionVer: db.connectionVer,
+  };
 };
 
 export const gameRepository = {
@@ -155,4 +180,5 @@ export const gameRepository = {
   getGame,
   startGame,
   saveGame,
+  updatePlayer,
 };

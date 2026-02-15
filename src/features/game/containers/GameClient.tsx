@@ -7,6 +7,7 @@ import { GameStatus } from "../ui/GameStatus";
 import { GameField } from "../ui/GameField";
 import { useGame } from "../model/useGame";
 import { GameEntity, PlayerEntity } from "@/entities/game";
+import { TicTacField } from "@/shared/components/TicTacField";
 
 export const GameClient = ({
   defaultGame,
@@ -15,18 +16,13 @@ export const GameClient = ({
   defaultGame: GameEntity;
   player: PlayerEntity;
 }) => {
-  const {
-    game = defaultGame,
-    isPending,
-    step,
-    isStepPending,
-  } = useGame(defaultGame.id, player);
+  const { game = defaultGame, step } = useGame(defaultGame.id, player);
 
   return (
     <GameLayout
       players={<GamePlayers game={game} />}
       status={<GameStatus game={game} />}
-      field={<GameField game={game} onCellClick={step} />}
+      field={<TicTacField size="md" board={game.field} onCellClick={step} />}
     />
   );
 };

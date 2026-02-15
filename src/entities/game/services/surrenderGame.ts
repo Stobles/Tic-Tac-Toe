@@ -1,5 +1,5 @@
 import { GameId } from "@/kernel/ids";
-import { PlayerEntity } from "../domain";
+import { PlayerEntity } from "../domain/types";
 import { gameRepository } from "../repositories/game";
 import { left, right } from "@/shared/lib/either";
 
@@ -17,6 +17,11 @@ export async function surrenderGame(gameId: GameId, player: PlayerEntity) {
   if (!game.players.some((pl) => pl.id === player.id)) {
     return left("player-is-not-in-game" as const);
   }
+
+  await gameRepository.updatePlayer(gameId, {
+    ...player,
+    status: "forfeited",
+  });
 
   return right(
     await gameRepository.saveGame({

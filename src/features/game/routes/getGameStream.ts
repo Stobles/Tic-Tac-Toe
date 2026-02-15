@@ -1,9 +1,11 @@
-import { getGameById, surrenderGame } from "@/entities/game/server";
+import { freezeGame, getGameById, surrenderGame } from "@/entities/game/server";
 import { GameId } from "@/kernel/ids";
 import { createSseStream } from "@/shared/lib/sse/server";
 import { NextRequest } from "next/server";
 import { gameEvents } from "../../../entities/game/services/gameEvents";
 import { getCurrentUser } from "@/entities/user/server";
+import { GameHelpers } from "@/entities/game";
+import { revalidatePath } from "next/cache";
 
 export async function getGameStream(
   req: NextRequest,
@@ -22,18 +24,42 @@ export async function getGameStream(
 
   write(game);
 
-  const unwatch = await gameEvents.addListener(game.id, (newGame) => {
-    write(newGame.data);
-  });
+  const unwatch = await gameEvents.addGameChangedListener(
+    game.id,
+    (newGame) => {
+      write(newGame.data);
+    },
+  );
 
   handleDisconnect(async () => {
     unwatch();
 
-    const result = await surrenderGame(game.id, user);
+    const currentPlayer = GameHelpers.getPlayer(game, user.id);
+
+    if (!currentPlayer) return;
+
+    const result = await freezeGame(game.id, user, currentPlayer.connectionVer);
+
+    setTimeout(async () => {
+      const gameResult = await getGameById(game.id);
+
+      if (
+        gameResult?.status === "inProgress" &&
+        GameHelpers.hasPlayerForfeited(gameResult)
+      ) {
+        const surrenderResult = await surrenderGame(game.id, user);
+
+        if (surrenderResult.type === "right") {
+          gameEvents.emit({
+            type: "game-changed",
+            data: surrenderResult.value,
+          });
+        }
+      }
+    }, 100000);
 
     if (result.type === "right") {
-      console.log(`${user.login} сдался`);
-      gameEvents.emit(result.value);
+      gameEvents.emit({ type: "game-changed", data: result.value });
     }
   });
 

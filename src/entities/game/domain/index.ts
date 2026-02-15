@@ -1,76 +1,12 @@
-import { GameId, UserId } from "@/kernel/ids";
 import { Either, left, right } from "@/shared/lib/either";
-
-export type GameEntity =
-  | GameIdleEntity
-  | GameInProgressEntity
-  | GameOverEntity
-  | GameOverDrawEntity;
-
-export type GameIdleEntity = {
-  id: GameId;
-  creator: PlayerEntity;
-  field: Field;
-  status: "idle";
-};
-
-export type GameInProgressEntity = {
-  id: GameId;
-  players: PlayerEntity[];
-  field: Field;
-  status: "inProgress";
-};
-
-export type GameOverEntity = {
-  id: GameId;
-  players: PlayerEntity[];
-  field: Field;
-  status: "gameOver";
-  winner: PlayerEntity;
-};
-
-export type GameOverDrawEntity = {
-  id: GameId;
-  players: PlayerEntity[];
-  field: Field;
-  status: "gameOverDraw";
-};
-
-export type PlayerEntity = {
-  id: UserId;
-  login: string;
-  rating: number;
-};
-
-export type Field = Cell[];
-
-export type Cell = GameSymbol | null;
-export type GameSymbol = string;
-
-const GameSymbols = {
-  X: "X",
-  O: "O",
-};
-
-export const getGameCurrentSymbol = (
-  game: GameInProgressEntity | GameOverEntity | GameOverDrawEntity,
-) => {
-  const symbols = game.field.filter((s) => s != null).length;
-  return symbols % 2 === 0 ? GameSymbols.X : GameSymbols.O;
-};
-
-export const getNextSymbol = (gameSymbol: GameSymbol) => {
-  return gameSymbol === GameSymbols.X ? GameSymbols.O : GameSymbols.X;
-};
-
-export const getPlayerSymbol = (
-  player: PlayerEntity,
-  game: GameInProgressEntity | GameOverEntity,
-) => {
-  const index = game.players.findIndex((p) => p.id === player.id);
-
-  return { 0: GameSymbols.X, 1: GameSymbols.O }[index];
-};
+import { Field } from "@/shared/types";
+import {
+  GameInProgressEntity,
+  GameOverDrawEntity,
+  GameOverEntity,
+  PlayerEntity,
+} from "./types";
+import { getGameCurrentSymbol, getPlayerSymbol } from "./helpers";
 
 export const doStep = ({
   game,
@@ -81,7 +17,7 @@ export const doStep = ({
   index: number;
   player: PlayerEntity;
 }): Either<
-  "not-player-symbol" | "game-cell-has-symbol",
+  "not-player-symbol" | "game-cell-has-symbol" | "waiting-for-player",
   GameInProgressEntity | GameOverEntity | GameOverDrawEntity
 > => {
   const currentSymbol = getGameCurrentSymbol(game);
@@ -92,6 +28,10 @@ export const doStep = ({
 
   if (game.field[index]) {
     return left("game-cell-has-symbol" as const);
+  }
+
+  if (game.players.some((pl) => pl.status === "disconnected")) {
+    return left("waiting-for-player" as const);
   }
 
   const newField = game.field.map((cell, i) =>

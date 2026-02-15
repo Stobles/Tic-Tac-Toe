@@ -1,12 +1,12 @@
 export type {
   GameEntity,
-  Field,
   GameIdleEntity,
   GameInProgressEntity,
   GameOverDrawEntity,
   GameOverEntity,
-  GameSymbol,
   PlayerEntity,
-  getGameCurrentSymbol,
-  getNextSymbol,
-} from "./domain";
+  PlayerStatus,
+} from "./domain/types";
+
+export * as GameDomain from "./domain";
+export * as GameHelpers from "./domain/helpers";

@@ -1,4 +1,4 @@
-import { GameIdleEntity } from "../domain";
+import { GameIdleEntity } from "../domain/types";
 import { gameRepository } from "../repositories/game";
 
 export async function getIdleGames(): Promise<GameIdleEntity[]> {

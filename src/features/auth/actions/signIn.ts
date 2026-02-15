@@ -15,15 +15,19 @@ export type SignInFormState = {
 };
 
 const formDataSchema = z.object({
-  login: z.string().min(3),
-  password: z.string().min(3),
+  login: z
+    .string()
+    .min(3, { error: "Логин должен содержать более 3 символов" }),
+  password: z
+    .string()
+    .min(3, { error: "Пароль должен содержать более 3 символов" }),
 });
 
 type FormDataType = z.infer<typeof formDataSchema>;
 
 export const signInAction = async (
   state: SignInFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<SignInFormState> => {
   const data = Object.fromEntries(formData.entries());
 

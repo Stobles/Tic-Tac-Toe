@@ -1,7 +1,6 @@
 "use server";
 
 import { createUser, sessionService } from "@/entities/user/server";
-import { left, mapLeft } from "@/shared/lib/either";
 import { redirect } from "next/navigation";
 
 import { z } from "zod";
@@ -16,15 +15,19 @@ export type SignUpFormState = {
 };
 
 const formDataSchema = z.object({
-  login: z.string().min(3),
-  password: z.string().min(3),
+  login: z
+    .string()
+    .min(3, { error: "Логин должен содержать более 3 символов" }),
+  password: z
+    .string()
+    .min(3, { error: "Пароль должен содержать более 3 символов" }),
 });
 
 type FormDataType = z.infer<typeof formDataSchema>;
 
 export const signUpAction = async (
   state: SignUpFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<SignUpFormState> => {
   const data = Object.fromEntries(formData.entries());
 
